@@ -1,0 +1,37 @@
+---
+title: "project"
+author: "Ram-G02494015"
+date: "2022-11-04"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyr)
+library(forecast)
+library(dplyr)
+```
+
+```{r}
+electricity_df<-read.csv(file="D:/CIS 635/Project/Electricity_Sales_to_Ultimate_Customers_Total_Monthly.csv")
+head(electricity_df)
+```
+
+```{r}
+electricity_new<-separate(electricity_df, col=Month, into=c('Month', 'Year'), sep='-')
+head(electricity_new)
+```
+
+```{r}
+electricity_new$Year <-as.numeric(electricity_new$Year)
+electricity_new %>% 
+mutate(electricity_new, YEAR = ifelse(Year %in% 0:9,paste(200, Year, sep=""),
+                                      ifelse(Year %in% 10:22,paste(20, Year, sep=""),
+                                     ifelse(Year %in% 73:99, paste(19, Year, sep=""),""))))
+head(electricity_new)
+```
