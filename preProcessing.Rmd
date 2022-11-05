@@ -18,7 +18,7 @@ library(dplyr)
 ```
 
 ```{r}
-electricity_df<-read.csv(file="D:/CIS 635/Project/Electricity_Sales_to_Ultimate_Customers_Total_Monthly.csv")
+electricity_df<-read.csv(file="Electricity_Sales_to_Ultimate_Customers_Total_Monthly.csv")
 head(electricity_df)
 ```
 
@@ -34,4 +34,7 @@ mutate(electricity_new, YEAR = ifelse(Year %in% 0:9,paste(200, Year, sep=""),
                                       ifelse(Year %in% 10:22,paste(20, Year, sep=""),
                                      ifelse(Year %in% 73:99, paste(19, Year, sep=""),""))))
 head(electricity_new)
+```
+```{r}
+
 ```
