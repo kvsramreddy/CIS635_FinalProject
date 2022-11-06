@@ -22,14 +22,14 @@ electricity_df<-read.csv(file="Electricity_Sales_to_Ultimate_Customers_Total_Mon
 head(electricity_df)
 ```
 
-```{r}
+```{r "Seperating Columns"}
 electricity_new<-separate(electricity_df, col=Month, into=c('Month', 'Year'), sep='-')
 head(electricity_new)
 ```
 
-```{r}
+```{r "Editing Year"}
 electricity_new$Year <-as.numeric(electricity_new$Year)
-electricity_new %>% 
+electricity_new<-electricity_new %>% 
 mutate(electricity_new, YEAR = ifelse(Year %in% 0:9,paste(200, Year, sep=""),
                                       ifelse(Year %in% 10:22,paste(20, Year, sep=""),
                                      ifelse(Year %in% 73:99, paste(19, Year, sep=""),""))))
