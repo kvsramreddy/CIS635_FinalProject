@@ -36,5 +36,33 @@ mutate(electricity_new, YEAR = ifelse(Year %in% 0:9,paste(200, Year, sep=""),
 head(electricity_new)
 ```
 ```{r}
+electricity_new<-electricity_new %>% 
+mutate(electricity_new, MONTH = match(Month, month.abb))
+
+electricity_new<-electricity_new %>% 
+mutate(electricity_new, MONTH = ifelse(MONTH %in% 0:9,paste(0, MONTH, sep=""),MONTH))
+
+electricity_new <- electricity_new %>% 
+mutate(electricity_new, DATE = paste("01"))
+
+
+head(electricity_new)
+
+```
+
+```{r "Sorting by month and year"}
+electricity_new<-electricity_new[
+  with(electricity_new, order(electricity_new$YEAR, electricity_new$MONTH)),
+]
+head(electricity_new)
+
+```
+
+```{r "as date"}
+
+DATE <- c(paste(electricity_new$YEAR,"-",electricity_new$MONTH,"-",electricity_new$DATE, sep = ""))
+CONSUMPTION <- c(electricity_new$Series.ID..TOTAL.ESTCPUS.M.Million.Kilowatthours)
+electricity_final <- data.frame(DATE,CONSUMPTION)
+head(electricity_final)
 
 ```
