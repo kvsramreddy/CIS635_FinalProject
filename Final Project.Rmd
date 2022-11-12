@@ -1,0 +1,159 @@
+---
+title: "Final Project"
+author: "Dharani Vulpala"
+date: "2022-11-08"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(forecast)
+library(dplyr)
+library(tseries)
+```
+
+```{r}
+# Reading the data
+
+electricity_df<-read.csv(file="/Users/shara/OneDrive/Desktop/GVSU-Classes/CIS-635-KDD/Final Project/Final Project data/Electricity_Sales_to_Ultimate_Customers_Total_Monthly.csv")
+head(electricity_df)
+```
+
+```{r}
+# Separating Columns
+
+electricity_new<-separate(electricity_df, col= Month, into=c('Month','Year'),sep = '-')
+head(electricity_new)
+```
+
+```{r}
+# Editing Year
+
+electricity_new$Year <- as.numeric(electricity_new$Year)
+electricity_new <- electricity_new %>% 
+mutate(electricity_new, Year = ifelse(Year %in% 0:9 , paste(200, Year, sep = ""), ifelse( Year %in% 10:22, paste(20,Year,sep=""), ifelse( Year %in% 73:99, paste(19, Year, sep = ""),""))))
+head(electricity_new)
+```
+
+```{r}
+# Converting months into numeric types
+
+electricity_new <- electricity_new %>%
+  mutate(electricity_new, Month=match(Month, month.abb))
+
+electricity_new <- electricity_new %>%
+  mutate(electricity_new, Month=ifelse(Month %in% 0:9, paste(0, Month, sep = ""),Month))
+
+electricity_new <- electricity_new %>%
+  mutate(electricity_new,Date=paste("01"))
+head(electricity_new)
+```
+
+```{r}
+# Sorting the data by month and year
+
+electricity_new <- electricity_new[
+  with(electricity_new, order(electricity_new$Year, electricity_new$Month)),
+]
+head(electricity_new)
+```
+
+```{r}
+# Sorting by Date
+
+Date <- c(paste(electricity_new$Year,"-",electricity_new$Month,"-",electricity_new$Date,sep =""))
+Consumption <- c(electricity_new$Series.ID..TOTAL.ESTCPUS.M.Million.Kilowatthours)
+electricity_final <-data.frame(Date, Consumption)
+head(electricity_final)
+```
+
+```{r}
+# Converting data into timeseries
+
+ts_consumption <- ts(electricity_final$Consumption , frequency = 12, start = c(1973))
+head(ts_consumption)
+plot(ts_consumption)
+```
+
+```{r}
+# Holt Winters application
+
+hw_consumption <- HoltWinters(ts_consumption)
+plot(hw_consumption)
+```
+
+```{r}
+# forecasting next years consumption
+
+nextyear_consumption <- forecast(hw_consumption, h=12)
+head(nextyear_consumption)
+plot(nextyear_consumption)
+```
+
+```{r}
+# Error metrics
+
+accuracy(nextyear_consumption)
+plot(nextyear_consumption)
+```
+
+```{r}
+# To apply ARIMA model, we need to fist check whether the data is stationary.[A stationary process has a mean and variance that donot change over time  and the process doesnt have trend]
+# To check  for stationary, we apply ADF(Augmented Dickey-Fuller) test
+# Null Hypothesis- Non Stationary (Do not reject if p value>significance level(1%))
+
+adf.test(ts_consumption, k=12)
+``` 
+
+```{r}
+# Therefore the original series is NON Stationary
+# Now we need to perform ADF test on  First Difference
+# First level difference is nOn stationary
+
+ts_consumption_d1 <- diff(ts_consumption, differences = 1)
+adf.test(ts_consumption_d1, k=12)
+autoplot(ts_consumption_d1)
+```
+
+```{r}
+# Choosing p (AR or lag ) term with  PACF plot
+
+pacf(ts_consumption_d1)
+```
+
+```{r}
+# From the PACF plot, we find that p= 0.7
+```
+
+```{r}
+# Choosing q (MA or  Moving Average) term with  ACF plot
+
+acf(ts_consumption_d1)
+```
+
+
+```{r}
+# From the ACF plot, we find that q= 0.25
+```
+
+```{r}
+# Fitting the ARIMA model(p,d,q)=(0.7,1,0.25)
+
+tsMod <-arima(x=ts_consumption, order=c(0.7,1,0.25))
+head(tsMod)
+print(tsMod)
+```
+
+```{r}
+# Forecasting
+
+forecast(tsMod, h=12)
+```
+
+```{r}
+# Plot the final series
+
+autoplot(forecast(tsMod, h=12))
+```
