@@ -3,8 +3,8 @@ title: "project"
 author: "Ram-G02494015"
 date: "2022-11-04"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,6 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyr)
 library(forecast)
 library(dplyr)
+library(TSstudio)
+library(ggplot2)
+library(ggfortify)
 ```
 
 ```{r}
@@ -42,8 +45,6 @@ mutate(electricity_new, MONTH = match(Month, month.abb))
 electricity_new<-electricity_new %>% 
 mutate(electricity_new, MONTH = ifelse(MONTH %in% 0:9,paste(0, MONTH, sep=""),MONTH))
 
-electricity_new <- electricity_new %>% 
-mutate(electricity_new, DATE = paste("01"))
 
 
 head(electricity_new)
@@ -60,9 +61,15 @@ head(electricity_new)
 
 ```{r "as date"}
 
-DATE <- c(paste(electricity_new$YEAR,"-",electricity_new$MONTH,"-",electricity_new$DATE, sep = ""))
+DATE <- c(paste(electricity_new$YEAR,"-",electricity_new$MONTH, sep = ""))
 CONSUMPTION <- c(electricity_new$Series.ID..TOTAL.ESTCPUS.M.Million.Kilowatthours)
 electricity_final <- data.frame(DATE,CONSUMPTION)
 head(electricity_final)
 
+write.csv(electricity_final,"electricity_final.csv")
+```
+```{r "Converting to time series"}
+dataTS <- ts(electricity_final$CONSUMPTION, start=1973, frequency=12)
+head(dataTS)
+autoplot(dataTS)
 ```
