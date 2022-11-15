@@ -21,6 +21,7 @@ library(ggfortify)
 ```
 
 ```{r}
+#loading data
 electricity_df<-read.csv(file="Electricity_Sales_to_Ultimate_Customers_Total_Monthly.csv")
 head(electricity_df)
 ```
