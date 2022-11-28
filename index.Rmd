@@ -1,0 +1,9 @@
+---
+title: "CIS 635 Final Project Report"
+author: "Ram Kandula"
+date: "`r Sys.Date()`"
+output: bookdown::gitbook
+documentclass: book
+github-repo: kvsairamreddy/CIS635_FinalProject
+description: "This is a demo for automatically deploying your bookdown ebook to GitHub pages."
+---
