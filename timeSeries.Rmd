@@ -15,6 +15,7 @@ library(caret)
 library(ggplot2)
 library(pls)
 library(dplyr)
+library(TSstudio)
 ```
 
 ```{r}
@@ -24,35 +25,95 @@ head(electricity_final)
 ```
 
 ```{r Splitting}
-mon<-0
-date_test<-c()
-for(year in 1973:2020){
-  ifelse(mon<12,mon<-mon+1, mon<-1)
-  ifelse(mon<=9,a<-paste(0,mon,sep=''), a<-mon)
-  ifelse(mon<9,b<-paste(0,mon+1,sep=''), b<-ifelse(mon<12,mon+1,"01"))
-  date_test<-append(date_test,paste(year,a,sep='-'))
-  date_test<-append(date_test,paste(year,b,sep='-'))
-  
-}
-print(date_test)
-match(date_test,electricity_final$DATE)
-testSet<-electricity_final[match(date_test,electricity_final$DATE),]
-testSet
-trainSet<- electricity_final %>% slice(-c(match(date_test,electricity_final$DATE)))
-trainSet
+# mon<-0
+# date_test<-c()
+# for(year in 1973:2020){
+#   ifelse(mon<12,mon<-mon+1, mon<-1)
+#   ifelse(mon<=9,a<-paste(0,mon,sep=''), a<-mon)
+#   ifelse(mon<9,b<-paste(0,mon+1,sep=''), b<-ifelse(mon<12,mon+1,"01"))
+#   date_test<-append(date_test,paste(year,a,sep='-'))
+#   date_test<-append(date_test,paste(year,b,sep='-'))
+#   
+# }
+# print(date_test)
+# match(date_test,electricity_final$DATE)
+# testSet<-electricity_final[match(date_test,electricity_final$DATE),]
+# testSet
+# trainSet<- electricity_final %>% slice(-c(match(date_test,electricity_final$DATE)))
+# trainSet
+
 
 ```
 
 ```{r converting to time series}
 ts_consumption <- ts(electricity_final$CONSUMPTION , frequency = 12, start = c(1973))
 ts_consumption
+electricity_split<-ts_split(ts.obj = ts_consumption, sample.out =60)
+electricity_split$train
+electricity_split$test
 ```
 
 ```{r Plotting time series}
 plot(ts_consumption)
 ```
 
-```{r splitting timeseries}
-electricity_split<- createTimeSlices(ts_consumption, 10, horizon = 2, fixedWindow = FALSE, skip = 0)
-str(electricity_split,max.level = 1)
+```{r Training Holtwinters}
+Hw<-HoltWinters(electricity_split$train)
+plot(Hw)
+next_Year<-forecast(Hw, h=60)
+plot(next_Year)
+accuracy(next_Year, electricity_split$test)
+
+```
+
+```{r}
+# To apply ARIMA model, we need to fist check whether the data is stationary.[A stationary process has a mean and variance that donot change over time  and the process doesnt have trend]
+# To check  for stationary, we apply ADF(Augmented Dickey-Fuller) test
+# Null Hypothesis- Non Stationary (Do not reject if p value>significance level(1%))
+adf.test(electricity_split$test, k=12)
+``` 
+
+```{r}
+# Therefore the original series is NON Stationary
+# Now we need to perform ADF test on  First Difference
+# First level difference is nOn stationary
+electrcity_consumption <- diff(electricity_split$test, differences = 1)
+adf.test(ts_consumption_d1, k=12)
+autoplot(ts_consumption_d1)
+```
+
+```{r}
+# Choosing p (AR or lag ) term with  PACF plot
+pacf(ts_consumption_d1)
+```
+
+```{r}
+# From the PACF plot, we find that p= 0.7
+```
+
+```{r}
+# Choosing q (MA or  Moving Average) term with  ACF plot
+acf(ts_consumption_d1)
+```
+
+
+```{r}
+# From the ACF plot, we find that q= 0.25
+```
+
+```{r}
+# Fitting the ARIMA model(p,d,q)=(0.7,1,0.25)
+tsMod <-arima(x=ts_consumption, order=c(0.7,1,0.25))
+head(tsMod)
+print(tsMod)
+```
+
+```{r}
+# Forecasting
+forecast(tsMod, h=12)
+```
+
+```{r}
+# Plot the final series
+autoplot(forecast(tsMod, h=12))
 ```
