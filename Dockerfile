@@ -75,6 +75,21 @@ RUN \
     && \
   echo "installed r and configured r environment"
 
+########################################################
+# install osfclient, use to download project data
+########################################################
+RUN \
+  pip3 install osfclient \
+    && \
+  export OSF_PROJECT=w95ne \
+    && \
+  export PROJECT_PATH=/opt/auto-deploying-bookdown-example/ \
+    && \
+  osf -p ${OSF_PROJECT} fetch data.tar.gz ${PROJECT_PATH}/data.tar.gz \
+    && \
+  tar -xzf ${PROJECT_PATH}/data.tar.gz -C ${PROJECT_PATH}/ \
+    && \
+  echo "download"
 
 ########################################################
 # build supplemental material (will also run data analyses)
