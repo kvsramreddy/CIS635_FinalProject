@@ -21,7 +21,7 @@ RUN \
     && \
   apt-get install -y -qq --no-install-recommends \
     software-properties-common \
-    curl=7.58.0-2ubuntu3.7 \
+    curl \
     g++-10=10.2.0-5ubuntu1~20.04 \
     make=4.2.1-1.2 \
     cmake=3.16.3-1ubuntu1  \
