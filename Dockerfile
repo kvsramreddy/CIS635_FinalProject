@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 
 # Copy everything (minus anything specified in .dockerignore) into the image
-COPY . /opt/auto-deploying-bookdown-example
+COPY . /opt/CIS635_FinalProject
 
 # To make installs not ask questions about timezones
 ARG DEBIAN_FRONTEND=noninteractive
