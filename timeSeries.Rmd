@@ -16,6 +16,7 @@ library(ggplot2)
 library(pls)
 library(dplyr)
 library(TSstudio)
+library(tseries)
 ```
 
 ```{r}
@@ -56,13 +57,27 @@ electricity_split$test
 ```{r Plotting time series}
 plot(ts_consumption)
 ```
+```{r}
+#seasonality decomposition
+seasonalityData=decompose(ts_consumption, type = c("multiplicative"))
+seasonalityData
+plot(seasonalityData)
+seasonallyAdjusted<-(seasonalityData$x-seasonalityData$seasonal)
+plot(seasonallyAdjusted)
+plot(seasonalityData$seasonal)
+
+```
 
 ```{r Training Holtwinters}
 Hw<-HoltWinters(electricity_split$train)
 plot(Hw)
 next_Year<-forecast(Hw, h=60)
 plot(next_Year)
-accuracy(next_Year, electricity_split$test)
+
+
+Hw %>%
+  forecast(h=60) %>%
+  autoplot() + autolayer(electricity_split$test)
 
 ```
 
@@ -70,14 +85,14 @@ accuracy(next_Year, electricity_split$test)
 # To apply ARIMA model, we need to fist check whether the data is stationary.[A stationary process has a mean and variance that donot change over time  and the process doesnt have trend]
 # To check  for stationary, we apply ADF(Augmented Dickey-Fuller) test
 # Null Hypothesis- Non Stationary (Do not reject if p value>significance level(1%))
-adf.test(electricity_split$test, k=12)
+adf.test(ts_consumption, k=12)
 ``` 
 
 ```{r}
 # Therefore the original series is NON Stationary
 # Now we need to perform ADF test on  First Difference
 # First level difference is nOn stationary
-electrcity_consumption <- diff(electricity_split$test, differences = 1)
+ts_consumption_d1 <- diff(ts_consumption, differences = 1)
 adf.test(ts_consumption_d1, k=12)
 autoplot(ts_consumption_d1)
 ```
@@ -103,17 +118,59 @@ acf(ts_consumption_d1)
 
 ```{r}
 # Fitting the ARIMA model(p,d,q)=(0.7,1,0.25)
-tsMod <-arima(x=ts_consumption, order=c(0.7,1,0.25))
+tsMod <-arima(x=electricity_split$train, order=c(0.7,1,0.25))
 head(tsMod)
 print(tsMod)
+
+```
+```{r}
+autoModel<-auto.arima(electricity_split$train)
+autoModel
+autoPredict<-forecast(autoModel, h=60)
+autoPredict
+accuracy(autoPredict, electricity_split$test)
 ```
 
 ```{r}
 # Forecasting
-forecast(tsMod, h=12)
+prediction<-forecast(tsMod, h=60)
+prediction
 ```
 
 ```{r}
 # Plot the final series
-autoplot(forecast(tsMod, h=12))
+autoplot(prediction)+autolayer(electricity_split$test)
+```
+
+```{r comparing accuracy}
+accuracy(next_Year, electricity_split$test)
+accuracy(prediction, electricity_split$test)
+#accuracy(autoPredict, electricity_split$test)
+```
+
+```{r}
+autoModel$model
+```
+
+```{r}
+tsMod$model
+```
+
+```{r}
+hwAddModel<-hw(electricity_split$train, seasonal="additive")
+hwMulModel<-hw(electricity_split$train, seasonal="multiplicative")
+accuracy(hwAddModel)
+accuracy(hwMulModel)
+```
+
+```{r}
+accuracy(predict(hwAddModel),electricity_split$test)
+accuracy(predict(hwMulModel),electricity_split$test)
+autoplot(hwAddModel)
+autoplot(hwMulModel)
+```
+
+```{r}
+hwAddModel$residuals
+hwMulModel$residuals
 ```

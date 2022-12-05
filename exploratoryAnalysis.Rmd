@@ -1,0 +1,31 @@
+---
+title: "Exploratory Analysis"
+author: "Ram-G02494015"
+date: "2022-11-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+covid_2<-covid_tidy%>%filter(Type=="Total.Cases"|Type=="Active"|Type=="Discharged")
+ggplot(data = covid_2, mapping = aes(x=State.UTs, y=Stats)) +facet_wrap( ~ Type) + geom_point()+theme(axis.text.x = element_text(size=5,angle = 90, hjust = 1))
+
+```{r}
+electricity<-read.csv(file = "exploratory.csv")
+#electricity$MONTH  <- month.name[electricity$MONTH]
+head(electricity)
+```
+```{r}
+ggplot(data = electricity, mapping = aes(x=MONTH, y=CONSUMPTION)) +facet_wrap( ~ YEAR) + geom_line()+theme(axis.text.x = element_text(size=5,angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(data = electricity, mapping = aes(x=YEAR, y=CONSUMPTION)) +facet_wrap( ~ MONTH) + geom_line()+theme(axis.text.x = element_text(size=5,angle = 90, hjust = 1))
+ggsave("monthlyFacet.png")
+```

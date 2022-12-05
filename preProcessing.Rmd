@@ -67,7 +67,10 @@ CONSUMPTION <- c(electricity_new$Series.ID..TOTAL.ESTCPUS.M.Million.Kilowatthour
 electricity_final <- data.frame(DATE,CONSUMPTION)
 head(electricity_final)
 
+exploratory<-data.frame(YEAR=electricity_new$YEAR,MONTH=electricity_new$MONTH, CONSUMPTION)
+
 write.csv(electricity_final,"electricity_final.csv")
+write.csv(exploratory,"exploratory.csv")
 ```
 ```{r "Converting to time series"}
 dataTS <- ts(electricity_final$CONSUMPTION, start=1973, frequency=12)
